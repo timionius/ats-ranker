@@ -1,0 +1,5 @@
+=== JOB VACANCY ===
+{{job}}
+=== END JOB VACANCY ===
+
+Return ONLY valid JSON matching the required schema.

@@ -1,0 +1,73 @@
+Dmitrii Nikishov
+Lead / Senior Android Engineer
+(Platform, SDK, Performance, KMP)
+Email:             nikishovde@gmail.com
+LI:                   https://linkedin.com/in/nikishovde   
+GitHub:          https://github.com/timionius
+Lead Android Engineer with 10+ years of experience building production Android applications, SDKs and mobile platforms from MVP to large-scale enterprise deployments.
+Specialized in Android architecture, Kotlin, Jetpack Compose, Kotlin Multiplatform, native integrations (JNI/NDK), SDK development and performance optimization.
+Experienced leading distributed engineering teams, driving architecture decisions, modernizing Android codebases and delivering products from first release to production scale.
+Technical Expertise
+Android: Android SDK, Kotlin, Kotlin Flow, Jetpack Compose, Hilt/Dagger, Coroutines, MVVM/MVI, Gradle, Version Catalog, JNI/NDK, Android Architecture, Mokito
+Architecture: Clean Architecture, Modularization, Kotlin Multiplatform, SDK Development 
+Engineering: CI/CD, CircleCI, GitHub Actions, Firebase, Technical Leadership, Agile, Developer Productivity
+Professional Experience
+Cogni – Lead Mobile Engineer
+Dec 2021 – Present
+Led Android architecture and delivery for a Series A neobanking startup, scaling the product from the first Android release to a production mobile platform.
+Scaled engineering from outsourced development to an in-house distributed team of 10 engineers.
+Established engineering standards, SDLC processes and introduced two-week sprint cycles.
+Introduced Jetpack Compose-based UI architecture for new feature development.
+Designed Kotlin Multiplatform architecture reducing duplicated business logic across Android and iOS.
+Architected and developed a Rust-based native SDK integrating Solana functionality across Android and iOS through JNI/UniFFI bindings.
+Redesigned onboarding architecture integrating Veriff SDK.
+Established automated CI/CD pipelines, Version Catalog and release automation, reducing build time by 2×.
+Dutiap – Tech Lead
+Mar 2021 – Oct 2021
+Co-founded a mobile-first startup and led mobile product development from concept to MVP.
+Developed Android application using Kotlin and MVI architecture.
+Defined technical architecture for Android, backend and cloud infrastructure.
+Delivered an MVP within six months while leading a team of three engineers.
+VisionLabs – Android Engineer
+Jun 2020 – Mar 2021
+Optimized Android facial recognition pipeline reducing recognition latency by 70%.
+Redesigned JNI communication layer between Android and native recognition engine.
+Migrated architecture from RxJava to Kotlin Flow.
+Contributed to Android SDK used for enterprise facial recognition integrations.
+Developed backend tooling supporting Android POS infrastructure deployment.
+FashionHouse – Mobile Application Developer
+Feb 2019 – Apr 2020
+Delivered five production Android applications for retail sales consultants.
+Rolled out enterprise Mobile Device Management solution for Android devices.
+Developed native C++ SDK integrating Android applications with ERP and video analytics systems.
+Mentored engineers introducing messaging infrastructure based on RabbitMQ.
+DressMe – Tech Lead
+Jan 2018 – Dec 2018
+Built AI-powered fashion recommendation platform from concept to pilot release.
+Delivered cross-platform mobile application.
+Designed mobile architecture and backend services.
+RUSAL – Mobile Lead
+Sep 2017 – Dec 2017
+Led development of Android solution integrated with SAP PM for industrial maintenance.
+Managed team of six engineers.
+Implemented offline-first architecture using ObjectBox.
+Delivered NFC-based equipment inventory solution.
+Successfully launched pilot deployment across multiple industrial plants.
+Lofesdev Project – Android Developer
+Jan 2015 – Sept 2017
+Developed Android application for the Russian public procurement platform.
+Delivered production application with more than 10,000 installs on Google Play.
+Built backend services supporting data processing.
+
+Earlier Experience – Technical Manager • Project Manager
+Enterprise software delivery, recommendation systems, distributed platforms and large-scale integration projects.
+Key achievements:
+Reduced recommendation pipeline runtime from hours to minutes through migration to Apache Spark.
+Led enterprise integration projects for telecom and financial organizations.
+Managed cross-functional engineering teams delivering distributed software systems.
+Education
+Moscow State Textile University — Engineer’s Degree, Information Technologies & Automation
+Certifications
+Stanford University via Coursera — Machine Learning (2020)
+Open Source
+PixelSampler - Lightweight Android performance benchmarking framework for measuring rendering overhead across native Android, Flutter, React Native and other mobile frameworks.

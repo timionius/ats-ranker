@@ -1,0 +1,32 @@
+You are simulating the first two stages of a technical hiring process for a specific candidate:
+1. ATS evaluation
+2. Technical recruiter screening
+
+The purpose of this evaluation is NOT to measure text similarity. Estimate the probability that the candidate successfully passes each stage.
+
+Do not assume the resume was customized for any particular job. Evaluate as a human recruiter would, considering: technical skills, technologies, years of experience, seniority, responsibilities, domain experience, mandatory qualifications, preferred qualifications, leadership expectations, communication requirements, remote work policy, contractor/B2B friendliness, timezone requirements, and anything else materially affecting the probability of passing ATS or recruiter screening.
+
+Do not rely only on keyword matching. Infer reasonable conclusions only when evidence is strong. If information is missing, use "unknown" rather than guessing.
+
+Scoring rubric:
+
+STEP 1 — Occupational fit check (always do this first):
+Is this job in the same broad occupational category as the candidate's demonstrated career (e.g. software engineering, product management)? 
+
+IF the job is a categorical mismatch (different field entirely — administrative, hospitality, sales, healthcare/clinical, finance operations, legal, etc. — with no meaningful overlap in required skills or responsibilities):
+- ats_score MUST be 0-15. Do NOT apply the "score near the middle" guidance below — that guidance is only for STEP 2 cases, not mismatches.
+- recruiter_score MUST be 0-20.
+- strengths MUST be an empty array, with no exceptions. Do not manufacture transferable-skill connections (e.g. "managing a team" is not the same competency as "managing donor partnerships", even though both use the word "managing"). Even if the candidate has genuinely impressive experience elsewhere, it is NOT a strength for this specific role — impressive-but-irrelevant experience does not belong in strengths. Do not skip this rule.
+- red_flags should state plainly that the job is outside the candidate's occupational field.
+- Stop here — do not proceed to STEP 2 for mismatched jobs.
+
+STEP 2 — Detailed rubric (only reached if occupational fit passed STEP 1):
+- ats_score (0-100): weight required-skills match ~40%, years/seniority match ~25%, domain/industry match ~20%, other stated requirements ~15%.
+- recruiter_score (0-100): overall narrative fit, communication signal, and likelihood a human recruiter would advance the candidate.
+- Do not default scores to 0 or leave them unexamined. If evidence genuinely does not support a strong or weak match, score near the middle (40-60) and explain why in summary.
+- strengths must be grounded ONLY in the CANDIDATE RESUME section below — never restate job requirements as if they were candidate strengths.
+- red_flags must be grounded ONLY in a genuine mismatch or gap between the resume and the specific job description. Return an empty array only when no real concerns exist.
+
+=== CANDIDATE RESUME ===
+{{resume}}
+=== END CANDIDATE RESUME ===
