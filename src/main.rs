@@ -1,48 +1,22 @@
 use anyhow::{Context, Result};
 use duckdb::Connection;
 use reqwest::blocking::Client;
-use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use std::env;
 use std::fs;
 use std::time::Duration;
 
-const PREWARM_TEMPLATE: &str = include_str!("../prompts/prewarm.txt");
-const ASSESSMENT_TEMPLATE: &str = include_str!("../prompts/assessment.txt");
+mod deepseek;
+use deepseek::DeepSeekClient;
+
+mod utils;
+use utils::{PREWARM_TEMPLATE, ASSESSMENT_TEMPLATE, build_schema, calculate_cost, clean_html_content};
+
+mod model;
+use model::{AtsScoring, CompletionRequest, CompletionResponse, Usage};
 
 const SERVER_URL: &str = "http:/192.168.1.79:8080";
 const API_KEY: &str = "QQQ%123";
-
-#[derive(Serialize)]
-struct CompletionRequest {
-    prompt: String,
-    n_predict: u32,
-    temperature: f32,
-    repeat_penalty: f32,
-    cache_prompt: bool,
-    json_schema: Value,
-}
-
-#[derive(Deserialize, Debug)]
-struct CompletionResponse {
-    content: String,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-struct RedFlag {
-    severity: String,
-    reason: String,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-struct AtsScoring {
-    ats_score: u32,
-    recruiter_score: u32,
-    remote_type: String,
-    b2b_friendly: bool,
-    strengths: Vec<String>,
-    red_flags: Vec<RedFlag>,
-    summary: String,
-}
 
 struct AtsClient {
     client: Client,
@@ -164,45 +138,21 @@ impl AtsClient {
     }
 }
 
-fn build_schema() -> Value {
-    json!({
-        "type": "object",
-        "properties": {
-            "strengths": {"type": "array", "items": {"type": "string", "maxLength": 200}, "maxItems": 6},
-            "red_flags": {
-                "type": "array",
-                "minItems": 1,
-                "maxItems": 6,
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "severity": {"type": "string", "enum": ["high", "medium", "low"]},
-                        "reason": {"type": "string", "maxLength": 200}
-                    },
-                    "required": ["severity", "reason"],
-                    "additionalProperties": false
-                }
-            },
-            "summary": {"type": "string", "minLength": 20, "maxLength": 400},
-            "ats_score": {"type": "integer", "minimum": 0, "maximum": 100},
-            "recruiter_score": {"type": "integer", "minimum": 0, "maximum": 100},
-            "remote_type": {"type": "string", "enum": ["remote_first", "remote_friendly", "hybrid", "office", "unknown"]},
-            "b2b_friendly": {"type": "boolean"}
-        },
-        "required": ["strengths", "red_flags", "summary", "ats_score", "recruiter_score", "remote_type", "b2b_friendly"],
-        "additionalProperties": false
-    })
-}
 
 const MODEL_NAME: &str = "qwen2.5-1.5b-instruct-q4_k_m";
 
 fn main() -> Result<()> {
     let resume = fs::read_to_string("resume.txt").context("failed to read resume.txt")?;
-    let ats = AtsClient::new(&resume);
-
-    println!("Warming up prompt cache with resume prefix...");
-    ats.warm_up()?;
-    println!("Cache warmed. Starting vacancy scoring.");
+    // LOCAL VERSION
+    // let ats = AtsClient::new(&resume);
+    // println!("Warming up prompt cache with resume prefix...");
+    // ats.warm_up()?;
+    // println!("Cache warmed. Starting vacancy scoring.");
+    dotenvy::dotenv().expect("Failed to load .env file");
+        
+    let api_key = std::env::var("DEEPSEEK_API_KEY")
+        .context("set DEEPSEEK_API_KEY environment variable")?;
+    let ds = DeepSeekClient::new(&api_key, &resume);
 
     let conn = Connection::open("../greenhouse.duckdb")?;
     let mut stmt = conn.prepare(
@@ -217,24 +167,67 @@ fn main() -> Result<()> {
         ",
     )?;
 
-    let rows = stmt.query_map([], |row| {
-        Ok((
-            row.get::<_, i64>(0)?,
-            row.get::<_, String>(1)?,
-            row.get::<_, String>(2)?,
-            row.get::<_, String>(3)?,
-        ))
-    })?;
+    // let rows = stmt.query_map([], |row| {
+    //     Ok((
+    //         row.get::<_, i64>(0)?,
+    //         row.get::<_, String>(1)?,
+    //         row.get::<_, String>(2)?,
+    //         row.get::<_, String>(3)?,
+    //     ))
+    // })?;
 
-    for row in rows {
-        let (id, title, _url, content) = row?;
+    // for row in rows {
+    //     let (id, title, _url, content) = row?;
 
-        println!("\nID: {id}\nTITLE: {title}");
+    //     println!("\nID: {id}\nTITLE: {title}");
+    //     let clean_content = clean_html_content(&content);
+    //     match ats.score(&clean_content) {
+    //         Ok(scoring) => {
+    //             println!("{}", serde_json::to_string_pretty(&scoring)?);
+    //             AtsClient::write_success(&conn, id, &scoring, MODEL_NAME)?;
+    //         }
+    //         Err(e) => {
+    //             eprintln!("Failed to score job {id} ({title}): {e:?}");
+    //             AtsClient::write_error(&conn, id, &e.to_string())?;
+    //         }
+    //     }
+    // }
+
+    let rows: Vec<(i64, String, String, String)> = stmt
+        .query_map([], |row| {
+            Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
+        })?
+        .collect::<Result<_, _>>()?;
+
+    let total = rows.len();
+    let mut cumulative_cost = 0.0;
+    let mut cumulative_time = 0.0;
+    let batch_start = std::time::Instant::now();
+
+    println!("Scoring {total} vacancies via DeepSeek...");
+
+    for (i, (id, title, _url, content)) in rows.into_iter().enumerate() {
+        println!("\n[{}/{total}] ID: {id}  TITLE: {title}", i + 1);
         let clean_content = clean_html_content(&content);
-        match ats.score(&clean_content) {
-            Ok(scoring) => {
+        match ds.score(&clean_content) {
+            Ok((scoring, usage, elapsed)) => {
+                let cost = calculate_cost(&usage);
+                cumulative_cost += cost;
+                cumulative_time += elapsed;
+
                 println!("{}", serde_json::to_string_pretty(&scoring)?);
                 AtsClient::write_success(&conn, id, &scoring, MODEL_NAME)?;
+                write_metrics(&conn, id, &usage, cost, elapsed)?;
+
+                if (i + 1) % 25 == 0 {
+                    let wall_elapsed = batch_start.elapsed().as_secs_f64();
+                    let avg_per_job = wall_elapsed / (i + 1) as f64;
+                    let remaining = (total - (i + 1)) as f64 * avg_per_job;
+                    println!(
+                        "\n--- Progress: {}/{total} | cumulative cost: ${:.3} | avg {:.1}s/job | est. remaining: {:.0}min ---",
+                        i + 1, cumulative_cost, avg_per_job, remaining / 60.0
+                    );
+                }
             }
             Err(e) => {
                 eprintln!("Failed to score job {id} ({title}): {e:?}");
@@ -242,27 +235,24 @@ fn main() -> Result<()> {
             }
         }
     }
-
     Ok(())
 }
 
-fn clean_html_content(input: &str) -> String {
-    let unescaped = input
-        .replace("&lt;", "<")
-        .replace("&gt;", ">")
-        .replace("&nbsp;", " ")
-        .replace("&amp;", "&");
-
-    let mut result = String::new();
-    let mut in_tag = false;
-    for c in unescaped.chars() {
-        match c {
-            '<' => in_tag = true,
-            '>' => in_tag = false,
-            _ if !in_tag => result.push(c),
-            _ => {}
-        }
-    }
-
-    result.split_whitespace().collect::<Vec<_>>().join(" ")
+fn write_metrics(conn: &Connection, job_id: i64, usage: &Usage, cost: f64, latency: f64) -> Result<()> {
+    conn.execute(
+        "INSERT INTO scoring_metrics (
+            job_id, prompt_tokens, prompt_cache_hit_tokens, prompt_cache_miss_tokens,
+            completion_tokens, cost_usd, latency_seconds, scored_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, now())",
+        duckdb::params![
+            job_id,
+            usage.prompt_tokens,
+            usage.prompt_cache_hit_tokens,
+            usage.prompt_cache_miss_tokens,
+            usage.completion_tokens,
+            cost,
+            latency,
+        ],
+    )?;
+    Ok(())
 }

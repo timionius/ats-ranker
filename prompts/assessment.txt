@@ -2,4 +2,20 @@
 {{job}}
 === END JOB VACANCY ===
 
-Return ONLY valid JSON matching the required schema.
+Return ONLY valid JSON, no other text before or after, matching exactly this shape:
+
+{
+  "strengths": ["specific strength 1", "specific strength 2"],
+  "red_flags": [
+    {"severity": "high", "reason": "specific gap or concern"},
+    {"severity": "medium", "reason": "another specific gap"}
+  ],
+  "summary": "two sentence summary",
+  "ats_score": 75,
+  "recruiter_score": 68,
+  "remote_type": "remote_friendly",
+  "b2b_friendly": true
+}
+
+red_flags is an array of objects with "severity" and "reason" fields — never plain strings.
+b2b_friendly is a true/false boolean field. If genuinely unclear from the JD, use your best reasonable inference rather than "unknown" — this field cannot represent "unknown" directly.
