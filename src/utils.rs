@@ -1,5 +1,6 @@
 use serde_json::{json, Value};
 use crate::model::Usage;
+use sha2::{Digest, Sha256};
 
 pub const PREWARM_TEMPLATE: &str = include_str!("../prompts/prewarm.txt");
 pub const ASSESSMENT_TEMPLATE: &str = include_str!("../prompts/assessment.txt");
@@ -66,4 +67,15 @@ pub fn clean_html_content(input: &str) -> String {
     }
 
     result.split_whitespace().collect::<Vec<_>>().join(" ")
+}
+
+pub fn hash_content(content: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(content.as_bytes());
+    hex::encode(hasher.finalize())
+}
+
+pub fn embedding_to_sql_literal(embedding: &[f32]) -> String {
+    let values: Vec<String> = embedding.iter().map(|v| v.to_string()).collect();
+    format!("[{}]", values.join(","))
 }

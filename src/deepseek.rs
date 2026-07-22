@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use crate::model::{AtsScoring, ChatMessage, ChatResponse, ChatRequest, ResponseFormat, Usage};
-use crate::utils::{PREWARM_TEMPLATE, ASSESSMENT_TEMPLATE, build_schema, clean_html_content, calculate_cost};
+use crate::utils::{PREWARM_TEMPLATE, ASSESSMENT_TEMPLATE, build_schema, calculate_cost};
 use reqwest::blocking::Client;
 use serde_json::{json, Value};
 use std::time::Duration;
