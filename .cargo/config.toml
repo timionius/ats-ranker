@@ -1,0 +1,7 @@
+[env]
+ORT_STRATEGY = "system"
+ORT_LIB_LOCATION = "/usr/local/opt/onnxruntime"
+ORT_PREFER_DYNAMIC_LINK = "1"
+
+[build]
+rustflags = ["-L", "/usr/local/opt/onnxruntime/lib"]

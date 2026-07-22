@@ -11,8 +11,11 @@ pub fn run(conn: &Connection, cv_id: i32) -> Result<()> {
         |row| Ok((row.get(0)?,)),
     ).with_context(|| format!("no CV found with id {cv_id}"))?;
 
+    dotenvy::dotenv().expect("Failed to load .env file");
+        
     let api_key = std::env::var("DEEPSEEK_API_KEY")
         .context("set DEEPSEEK_API_KEY environment variable")?;
+
     let ds = DeepSeekClient::new(&api_key, &raw_text);
 
     let mut stmt = conn.prepare(

@@ -1,32 +1,24 @@
 use anyhow::{Context, Result};
-use reqwest::blocking::Client;
-use serde::{Deserialize, Serialize};
+use fastembed::{TextEmbedding, InitOptions, EmbeddingModel};
 
-const EMBED_URL: &str = "http://192.168.1.87:8081/embedding";
-const EMBED_API_KEY: &str = "QQQ%123";
-
-#[derive(Serialize)]
-struct EmbedRequest {
-    content: String,
+pub fn build_embedder() -> Result<TextEmbedding> {
+    TextEmbedding::try_new(InitOptions::new(EmbeddingModel::BGESmallENV15))
+        .context("failed to initialize BGE-small-en-v1.5 embedding model")
 }
 
-#[derive(Deserialize, Debug)]
-struct EmbedResponseItem {
-    embedding: Vec<Vec<f32>>,
-}
+pub fn get_embedding(model: &mut TextEmbedding, text: &str) -> Result<Vec<f32>> {
+    let embeddings = model
+        .embed(vec![text.to_string()], None)
+        .context("embedding request failed")?;
 
-pub fn get_embedding(client: &Client, text: &str) -> Result<Vec<f32>> {
-    let resp: Vec<EmbedResponseItem> = client
-        .post(EMBED_URL)
-        .bearer_auth(EMBED_API_KEY)
-        .json(&EmbedRequest { content: text.to_string() })
-        .send()
-        .context("embedding request failed")?
-        .json()
-        .context("failed to parse embedding response")?;
-
-    resp.into_iter()
+    embeddings
+        .into_iter()
         .next()
-        .and_then(|item| item.embedding.into_iter().next())
         .context("no embedding vector returned")
+}
+
+pub fn get_embeddings_batch(model: &mut TextEmbedding, texts: Vec<String>) -> Result<Vec<Vec<f32>>> {
+    model
+        .embed(texts, None)
+        .context("batch embedding request failed")
 }
