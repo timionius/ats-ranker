@@ -57,7 +57,7 @@ impl DeepSeekClient {
                 content: user_content,
             }],
             temperature: 0.25,
-            max_tokens: 1000,
+            max_tokens: 2000,
             response_format: ResponseFormat::json_object(),
         };
         let start = std::time::Instant::now();
