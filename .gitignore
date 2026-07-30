@@ -2,3 +2,4 @@
 .env
 .DS_Store
 .fastembed_cache/
+ats_runker.duckdb.wal
