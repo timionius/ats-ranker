@@ -36,7 +36,7 @@ The workflow:
 ### Installation
 
 ```bash
-git clone https://github.com/yourusername/ats-ranker.git
+git clone git@github.com:timionius/ats-ranker.git
 cd ats-ranker
 cargo build --release
 ```
