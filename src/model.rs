@@ -60,12 +60,19 @@ impl ResponseFormat {
 }
 
 #[derive(Serialize)]
+pub struct ThinkingConfig {
+    #[serde(rename = "type")]
+    pub(crate) mode: String,
+}
+
+#[derive(Serialize)]
 pub struct ChatRequest {
     pub(crate) model: String,
     pub(crate) messages: Vec<ChatMessage>,
     pub(crate) temperature: f32,
     pub(crate) max_tokens: u32,
     pub(crate) response_format: ResponseFormat,
+    pub(crate) thinking: ThinkingConfig,
 }
 
 #[derive(Deserialize, Debug)]
@@ -77,11 +84,15 @@ pub struct ChatResponse {
 #[derive(Deserialize, Debug)]
 pub struct ChatChoice {
     pub(crate) message: ChatResponseMessage,
+    #[serde(default)]
+    pub(crate) finish_reason: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct ChatResponseMessage {
     pub(crate) content: String,
+    #[serde(default)]
+    pub(crate) reasoning_content: Option<String>,
 }
 
 #[derive(Deserialize, Debug, Clone)]

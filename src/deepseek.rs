@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use crate::model::{AtsScoring, ChatMessage, ChatResponse, ChatRequest, ResponseFormat, Usage};
+use crate::model::{AtsScoring, ChatMessage, ChatRequest, ChatResponse, ResponseFormat, ThinkingConfig, Usage};
 use crate::utils::{PREWARM_TEMPLATE, ASSESSMENT_TEMPLATE, build_schema, calculate_cost};
 use reqwest::blocking::Client;
 use serde_json::{json, Value};
@@ -20,7 +20,7 @@ impl DeepSeekClient {
     pub fn new(api_key: &str, resume: &str) -> Self {
         let fixed_prefix = PREWARM_TEMPLATE.replace("{{resume}}", resume.trim());
         let client = Client::builder()
-            .timeout(Duration::from_secs(120))
+            .timeout(Duration::from_secs(240))
             .build()
             .expect("failed to build reqwest client");
 
@@ -33,17 +33,22 @@ impl DeepSeekClient {
     }
 
     pub fn score(&self, job_description: &str) -> Result<(AtsScoring, Usage, f64)> {
-        for attempt in 1..=2 {
+        let delays = [Duration::from_secs(2), Duration::from_secs(10)];
+        let mut last_err = None;
+
+        for (attempt, delay) in std::iter::once(Duration::ZERO).chain(delays).enumerate() {
+            if attempt > 0 {
+                std::thread::sleep(delay);
+            }
             match self.try_score(job_description) {
                 Ok(result) => return Ok(result),
-                Err(e) if attempt == 1 => {
-                    eprintln!("  attempt 1 failed ({e}), retrying once...");
-                    continue;
+                Err(e) => {
+                    eprintln!("  attempt {} failed ({e}), retrying ...", attempt + 1);
+                    last_err = Some(e);
                 }
-                Err(e) => return Err(e),
             }
         }
-        unreachable!()
+        Err(last_err.unwrap())
     }
     
     fn try_score(&self, job_description: &str) -> Result<(AtsScoring, Usage, f64)> {
@@ -59,6 +64,7 @@ impl DeepSeekClient {
             temperature: 0.25,
             max_tokens: 2000,
             response_format: ResponseFormat::json_object(),
+            thinking: ThinkingConfig { mode: "disabled".to_string() },
         };
         let start = std::time::Instant::now();
 
@@ -87,7 +93,11 @@ impl DeepSeekClient {
             .message.content;
 
         if content.trim().is_empty() {
-            anyhow::bail!("model returned empty content (possible content filter or generation failure)");
+            anyhow::bail!(
+                "empty content, finish_reason: {:?}, reasoning_content present: {}",
+                response.choices[0].finish_reason,
+                response.choices[0].message.reasoning_content.is_some()
+            );
         }
 
         let scoring = Self::parse_scoring(content)
