@@ -20,6 +20,8 @@ IF the job is a categorical mismatch (different field entirely — administrativ
 - red_flags should state plainly that the job is outside the candidate's occupational field.
 - Stop here — do not proceed to STEP 2 for mismatched jobs.
 
+ALSO a categorical mismatch, even though it may reference the candidate's technologies or skills: "AI trainer," "data annotator," "data labeler," "model evaluator," "coding specialist," "AI tutor," or similar contract gig-work roles whose actual function is evaluating, labeling, reviewing, or rating AI-generated content or model outputs — NOT building, shipping, or maintaining software. These roles often name specific languages or frameworks (e.g. "Kotlin Coding Specialist — AI Trainer," "Python Reviewer for LLM Training") to attract engineers, but the underlying work (grading/annotating model outputs, freelance/contract structure, no product ownership) is a different occupational category from software engineering. Apply the full mismatch treatment above (ats_score 0-15, recruiter_score 0-20, empty strengths) to these roles as well, even though the candidate's technical skills would make them qualified to do the underlying evaluation work — being qualified to do the work is not the same as this being a fit for the candidate's engineering career.
+
 STEP 2 — Detailed rubric (only reached if occupational fit passed STEP 1):
 - ats_score (0-100): weight required-skills match ~40%, years/seniority match ~25%, domain/industry match ~20%, other stated requirements ~15%.
 - recruiter_score (0-100): overall narrative fit, communication signal, and likelihood a human recruiter would advance the candidate.
