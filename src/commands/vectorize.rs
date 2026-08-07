@@ -34,7 +34,7 @@ pub fn run_jd(conn: &Connection) -> Result<()> {
                 let literal = embedding_to_sql_literal(&embedding);
                 let query = format!(
                     "INSERT INTO job_embeddings (job_id, embedding, content_hash, embedded_at)
-                     VALUES (?, {literal}::FLOAT[384], ?, now())
+                     VALUES (?, {literal}::FLOAT[768], ?, now())
                      ON CONFLICT (job_id) DO UPDATE SET
                         embedding = excluded.embedding,
                         content_hash = excluded.content_hash,
@@ -80,7 +80,7 @@ pub fn run_cv(conn: &Connection, file: &Path) -> Result<()> {
 
     let query = format!(
         "INSERT INTO cvs (label, raw_text, embedding, embedded_at, created_at)
-         VALUES (?, ?, {literal}::FLOAT[384], now(), now())
+         VALUES (?, ?, {literal}::FLOAT[768], now(), now())
          RETURNING id"
     );
 

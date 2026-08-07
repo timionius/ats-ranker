@@ -80,51 +80,6 @@ pub fn embedding_to_sql_literal(embedding: &[f32]) -> String {
     format!("[{}]", values.join(","))
 }
 
-pub fn chunk_text(text: &str, max_words: usize, overlap: usize) -> Vec<String> {
-    let words: Vec<&str> = text.split_whitespace().collect();
-    if words.is_empty() {
-        return vec![String::new()];
-    }
-    if words.len() <= max_words {
-        return vec![text.to_string()];
-    }
-
-    let mut chunks = Vec::new();
-    let mut start = 0;
-    while start < words.len() {
-        let end = (start + max_words).min(words.len());
-        chunks.push(words[start..end].join(" "));
-        if end == words.len() {
-            break;
-        }
-        start += max_words - overlap;
-    }
-    chunks
-}
-
-pub fn mean_pool_and_normalize(vectors: &[Vec<f32>]) -> Vec<f32> {
-    let dim = vectors[0].len();
-    let mut mean = vec![0.0f32; dim];
-    for v in vectors {
-        for (i, x) in v.iter().enumerate() {
-            mean[i] += x;
-        }
-    }
-    let n = vectors.len() as f32;
-    for x in mean.iter_mut() {
-        *x /= n;
-    }
-    let norm: f32 = mean.iter().map(|x| x * x).sum::<f32>().sqrt();
-    if norm > 0.0 {
-        for x in mean.iter_mut() {
-            *x /= norm;
-        }
-    }
-    mean
-}
-
 pub fn vectorize_text(embedder: &mut fastembed::TextEmbedding, text: &str) -> anyhow::Result<Vec<f32>> {
-    let chunks = chunk_text(text, 350, 50);
-    let chunk_embeddings = crate::embeddings::get_embeddings_batch(embedder, chunks)?;
-    Ok(mean_pool_and_normalize(&chunk_embeddings))
+    crate::embeddings::get_embedding(embedder, text)
 }

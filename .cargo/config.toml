@@ -2,6 +2,8 @@
 ORT_STRATEGY = "system"
 ORT_LIB_LOCATION = "/usr/local/opt/onnxruntime"
 ORT_PREFER_DYNAMIC_LINK = "1"
+DUCKDB_LIB_DIR = { value = "/usr/local/opt/duckdb/lib", force = true }
+DUCKDB_INCLUDE_DIR = { value = "/usr/local/opt/duckdb/include", force = true }
 
 [build]
 rustflags = ["-L", "/usr/local/opt/onnxruntime/lib"]
